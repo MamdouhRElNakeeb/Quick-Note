@@ -13,8 +13,10 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
         return button
     }()
     var items = [User]()
+    var filteredItems = [User]()
     var selectedUser: User?
     
+    var searchController = UISearchController()
     let realm = try! Realm()
     
     //MARK: Methods
@@ -37,8 +39,10 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
         // Large Navigation Bar with Search Bar
         self.navigationController?.navigationBar.prefersLargeTitles = true
         self.navigationController?.navigationItem.largeTitleDisplayMode = .always
-        let searchBar = UISearchController(searchResultsController: nil)
-        navigationItem.searchController = searchBar
+        searchController = UISearchController(searchResultsController: nil)
+        searchController.searchResultsUpdater = self
+        searchController.obscuresBackgroundDuringPresentation = false
+        navigationItem.searchController = searchController
         navigationItem.hidesSearchBarWhenScrolling = false
         
     }
@@ -96,18 +100,24 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
     }
 
     
-
     //MARK: Delegates
     func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if self.items.count == 0 {
-            return 1
-        } else {
-            return self.items.count
+        
+        if isFiltering(){
+            return self.filteredItems.count
         }
+        else {
+            if self.items.count == 0 {
+                return 1
+            } else {
+                return self.items.count
+            }
+        }
+        
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -119,6 +129,15 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        
+        var user = User()
+        if isFiltering(){
+            user = filteredItems[indexPath.row]
+        }
+        else {
+            user = items[indexPath.row]
+        }
+        
         switch self.items.count {
         case 0:
             let cell = tableView.dequeueReusableCell(withIdentifier: "Empty Cell")!
@@ -127,17 +146,17 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
             let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath) as! ConversationsTBCell
             cell.clearCellData()
             
-            cell.nameLabel.text = self.items[indexPath.row].name
-            switch self.items[indexPath.row].lastMessage?.type {
+            cell.nameLabel.text = user.name
+            switch user.lastMessage?.type {
             case MessageType.text.hashValue?:
-                let message = String(data: (self.items[indexPath.row].lastMessage?.content!)!, encoding: .utf8)
+                let message = String(data: (user.lastMessage?.content!)!, encoding: .utf8)
                 cell.messageLabel.text = message
             case MessageType.location.hashValue?:
                 cell.messageLabel.text = "Location"
             default:
                 cell.messageLabel.text = "Media"
             }
-            let messageDate = Date.init(timeIntervalSince1970: TimeInterval((self.items[indexPath.row].lastMessage?.id)! / 1000))
+            let messageDate = Date.init(timeIntervalSince1970: TimeInterval((user.lastMessage?.id)! / 1000))
             let dataformatter = DateFormatter.init()
             dataformatter.timeStyle = .short
             let date = dataformatter.string(from: messageDate)
@@ -150,8 +169,33 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
         let vc = self.storyboard?.instantiateViewController(withIdentifier: "Chat") as! ChatVC
-        vc.currentUser = self.items[indexPath.row]
+        var user = User()
+        if isFiltering(){
+            user = filteredItems[indexPath.row]
+        }
+        else {
+            user = items[indexPath.row]
+        }
+        vc.currentUser = user
         self.navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    // MARK: - Segues
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "chatSegue" {
+            if let indexPath = tableView.indexPathForSelectedRow {
+                let user: User
+                if isFiltering() {
+                    user = filteredItems[indexPath.row]
+                } else {
+                    user = items[indexPath.row]
+                }
+                let controller = (segue.destination as! UINavigationController).topViewController as! ChatVC
+                controller.currentUser = user
+                controller.navigationItem.largeTitleDisplayMode = .never
+                controller.navigationItem.leftItemsSupplementBackButton = true
+            }
+        }
     }
     
     //MARK: ViewController lifeCycle
@@ -161,7 +205,6 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
         self.fetchData()
     }
     
-    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         if let selectionIndexPath = self.tableView.indexPathForSelectedRow {
@@ -170,9 +213,38 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
         
         self.tableView.reloadData()
     }
+    
+    func searchBarIsEmpty() -> Bool {
+        // Returns true if the text is empty or nil
+        return searchController.searchBar.text?.isEmpty ?? true
+    }
+    
+    func filterContentForSearchText(_ searchText: String, scope: String = "All") {
+        filteredItems = items.filter({( user : User) -> Bool in
+            print(user.name)
+            return user.name.lowercased().contains(searchText.lowercased())
+        })
+        
+        self.tableView.reloadData()
+    }
+    
+    func isFiltering() -> Bool {
+        return searchController.isActive && !searchBarIsEmpty()
+    }
 }
 
 
-
+extension ConversationsVC: UISearchResultsUpdating, UISearchBarDelegate {
+    // MARK: - UISearchResultsUpdating Delegate
+    func updateSearchResults(for searchController: UISearchController) {
+        //
+        filterContentForSearchText(searchController.searchBar.text!)
+    }
+//
+//    // MARK: - UISearchBar Delegate
+//    func searchBar(_ searchBar: UISearchBar, selectedScopeButtonIndexDidChange selectedScope: Int) {
+//        filterContentForSearchText(searchBar.text!, scope: searchBar.scopeButtonTitles![selectedScope])
+//    }
+}
 
 

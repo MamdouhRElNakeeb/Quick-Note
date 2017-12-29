@@ -1,6 +1,5 @@
 import UIKit
 import Photos
-//import Firebase
 import CoreLocation
 import RealmSwift
 
@@ -53,17 +52,6 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
     
     //Downloads messages
     func fetchData() {
-//        Message.downloadAllMessages(forUserID: self.currentUser!.id, completion: {[weak weakSelf = self] (message) in
-//            weakSelf?.items.append(message)
-//            weakSelf?.items.sort{ $0.timestamp < $1.timestamp }
-//            DispatchQueue.main.async {
-//                if let state = weakSelf?.items.isEmpty, state == false {
-//                    weakSelf?.tableView.reloadData()
-//                    weakSelf?.tableView.scrollToRow(at: IndexPath.init(row: self.items.count - 1, section: 0), at: .bottom, animated: false)
-//                }
-//            }
-//        })
-//        Message.markMessagesRead(forUserID: self.currentUser!.id)
         
         let user = realm.objects(User.self).filter("id = \(currentUser?.id ?? 0)").first
         
@@ -91,9 +79,6 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
     }
     
     func composeMessage(type: MessageType, content: Data)  {
-//        let message = Message.init(type: type, content: content, owner: .sender, timestamp: Int(Date().timeIntervalSince1970), isRead: false)
-//        Message.send(message: message, toID: self.currentUser!.id, completion: {(_) in
-//        })
         
         let message = Message()
         message.content = content
