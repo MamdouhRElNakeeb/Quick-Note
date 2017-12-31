@@ -14,6 +14,7 @@
 		22A92BB11D59EBD6005D76F7 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A92BB01D59EBD6005D76F7 /* AppDelegate.swift */; };
 		22A92BB81D59EBD6005D76F7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 22A92BB71D59EBD6005D76F7 /* Assets.xcassets */; };
 		22EA578F1E1D28DD0008FFB2 /* newMessage.wav in Resources */ = {isa = PBXBuildFile; fileRef = 22EA578E1E1D28DD0008FFB2 /* newMessage.wav */; };
+		33646AF51FF6B617009536E2 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 33646AF41FF6B617009536E2 /* CloudKit.framework */; };
 		33762D931FEE18F600F051E6 /* AvailableContactsTVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33762D921FEE18F600F051E6 /* AvailableContactsTVC.swift */; };
 		33C16A901FED71C000B34462 /* WelcomeVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33C16A8A1FED71BF00B34462 /* WelcomeVC.swift */; };
 		33C16A911FED71C000B34462 /* NavVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33C16A8B1FED71BF00B34462 /* NavVC.swift */; };
@@ -35,6 +36,7 @@
 		22A92BB71D59EBD6005D76F7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		22A92BBC1D59EBD6005D76F7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		22EA578E1E1D28DD0008FFB2 /* newMessage.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = newMessage.wav; sourceTree = "<group>"; };
+		33646AF41FF6B617009536E2 /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = System/Library/Frameworks/CloudKit.framework; sourceTree = SDKROOT; };
 		33762D8F1FEE095200F051E6 /* QuickNote.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = QuickNote.entitlements; sourceTree = "<group>"; };
 		33762D921FEE18F600F051E6 /* AvailableContactsTVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvailableContactsTVC.swift; sourceTree = "<group>"; };
 		33C16A8A1FED71BF00B34462 /* WelcomeVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WelcomeVC.swift; path = QuickNote/ViewControllers/WelcomeVC.swift; sourceTree = "<group>"; };
@@ -59,6 +61,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				33646AF51FF6B617009536E2 /* CloudKit.framework in Frameworks */,
 				226EFFA11E1BBBCA00B1D185 /* MapKit.framework in Frameworks */,
 				1F8DDF2374E3B73D436DCF0A /* Pods_QuickNote.framework in Frameworks */,
 			);
@@ -138,6 +141,7 @@
 		5923406597F4A9DB000B8FF9 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				33646AF41FF6B617009536E2 /* CloudKit.framework */,
 				226EFFA01E1BBBCA00B1D185 /* MapKit.framework */,
 				B8041C4B4A9DA4F0F53D2BDE /* Pods_QuickChat.framework */,
 				E5A9E7EA87D7F0649C069234 /* Pods_QuickNote.framework */,
@@ -191,14 +195,20 @@
 				TargetAttributes = {
 					22A92BAC1D59EBD5005D76F7 = {
 						CreatedOnToolsVersion = 8.0;
-						DevelopmentTeam = 9W8P2US8Q4;
+						DevelopmentTeam = 6838VW6CQB;
 						DevelopmentTeamName = "Haik Aslanyan (Personal Team)";
-						ProvisioningStyle = Manual;
+						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
+							com.apple.BackgroundModes = {
+								enabled = 1;
+							};
 							com.apple.Keychain = {
 								enabled = 0;
 							};
 							com.apple.Maps.iOS = {
+								enabled = 1;
+							};
+							com.apple.Push = {
 								enabled = 1;
 							};
 							com.apple.iCloud = {
@@ -280,11 +290,13 @@
 			);
 			inputPaths = (
 				"${SRCROOT}/Pods/Target Support Files/Pods-QuickNote/Pods-QuickNote-frameworks.sh",
+				"${BUILT_PRODUCTS_DIR}/IceCream/IceCream.framework",
 				"${BUILT_PRODUCTS_DIR}/Realm/Realm.framework",
 				"${BUILT_PRODUCTS_DIR}/RealmSwift/RealmSwift.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/IceCream.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Realm.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RealmSwift.framework",
 			);
@@ -416,15 +428,16 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_ENTITLEMENTS = QuickNote/QuickNote.entitlements;
-				CODE_SIGN_STYLE = Manual;
-				DEVELOPMENT_TEAM = 9W8P2US8Q4;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 6838VW6CQB;
 				INFOPLIST_FILE = "$(SRCROOT)/QuickNote/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = me.nakeeb.quicknote;
+				PRODUCT_BUNDLE_IDENTIFIER = com.creatifynetwork.quicknote;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				SWIFT_VERSION = 3.0;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Debug;
 		};
@@ -435,15 +448,16 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_ENTITLEMENTS = QuickNote/QuickNote.entitlements;
-				CODE_SIGN_STYLE = Manual;
-				DEVELOPMENT_TEAM = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 6838VW6CQB;
 				INFOPLIST_FILE = "$(SRCROOT)/QuickNote/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = me.nakeeb.quicknote;
+				PRODUCT_BUNDLE_IDENTIFIER = com.creatifynetwork.quicknote;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				SWIFT_VERSION = 3.0;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Release;
 		};

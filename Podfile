@@ -7,5 +7,6 @@ target 'QuickNote' do
 
   # Pods for QuickChat
   pod 'RealmSwift'
-
+  pod 'IceCream'
+  
 end

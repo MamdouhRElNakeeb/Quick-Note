@@ -1,17 +1,38 @@
 import UIKit
+import IceCream
+import CloudKit
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
     
     var window: UIWindow?
     
+    var syncUsers: SyncEngine<User>?
+    var syncMsgs: SyncEngine<Message>?
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
 
         
 //        UINavigationBar.appearance().setBackgroundImage(UIImage(named: "navigation")!.resizableImage(withCapInsets: UIEdgeInsetsMake(0, 0, 0, 0), resizingMode: .stretch), for: .default)
 //        UINavigationBar.appearance().isTranslucent = false
+        
+        syncUsers = SyncEngine<User>()
+        syncMsgs = SyncEngine<Message>()
+        application.registerForRemoteNotifications()
+        
         return true
+    }
+    
+    func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+        
+        let dict = userInfo as! [String: NSObject]
+        let notification = CKNotification(fromRemoteNotificationDictionary: dict)
+
+        if (notification.subscriptionID == IceCreamConstant.cloudKitSubscriptionID) {
+            NotificationCenter.default.post(name: Notifications.cloudKitDataDidChangeRemotely.name, object: nil, userInfo: userInfo)
+        }
+        completionHandler(.newData)
+        
     }
     
     func applicationWillResignActive(_ application: UIApplication) {

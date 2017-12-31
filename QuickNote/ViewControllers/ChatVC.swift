@@ -53,7 +53,7 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
     //Downloads messages
     func fetchData() {
         
-        let user = realm.objects(User.self).filter("id = \(currentUser?.id ?? 0)").first
+        let user = realm.objects(User.self).filter("id = '\(currentUser?.id ?? "0")'").first
         
         if user == nil {
             print("user not found")
@@ -61,7 +61,7 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
             return
         }
         
-        let msgs = realm.objects(Message.self).filter("userId = \(currentUser?.id ?? 0)")
+        let msgs = realm.objects(Message.self).filter("userId = '\(currentUser?.id ?? "0")'")
         
         if msgs.isEmpty {
             print("no messages found")
@@ -84,12 +84,25 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
         message.content = content
         message.type = type.hashValue
         message.userId = (currentUser?.id)!
-        message.id = Int((Date().timeIntervalSince1970 * 1000).rounded())
+        message.id = String(Int((Date().timeIntervalSince1970 * 1000).rounded()))
         try! self.realm.write {
             
             self.realm.add(message)
             print(message)
-            currentUser?.lastMessage = message
+            switch (type){
+            
+            case MessageType.photo:
+                currentUser?.lastMessage = "Media"
+                break
+            case MessageType.location:
+                currentUser?.lastMessage = "Location"
+                break
+            default:
+                currentUser?.lastMessage = String(data: content, encoding: .utf8)!
+                break
+            }
+            currentUser?.lastMessageTime = Int(message.id) ?? 0
+            
             self.realm.add(currentUser!, update: true)
             self.items.append(message)
             self.tableView.reloadData()
@@ -143,7 +156,7 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
     
     @IBAction func selectCamera(_ sender: Any) {
         self.animateExtraButtons(toHide: true)
-        let status = AVCaptureDevice.authorizationStatus(forMediaType: AVMediaTypeVideo)
+        let status = AVCaptureDevice.authorizationStatus(for: AVMediaType.video)
         if (status == .authorized || status == .notDetermined) {
             if UIImagePickerController.isSourceTypeAvailable(.camera) {
                 self.imagePicker.sourceType = .camera
@@ -181,7 +194,7 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
     }
     
     //MARK: NotificationCenter handlers
-    func showKeyboard(notification: Notification) {
+    @objc func showKeyboard(notification: Notification) {
         if let frame = notification.userInfo![UIKeyboardFrameEndUserInfoKey] as? NSValue {
             let height = frame.cgRectValue.height
             self.tableView.contentInset.bottom = height

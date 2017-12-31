@@ -50,7 +50,7 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
     //Downloads conversations
     func fetchData() {
         
-        let users = realm.objects(User.self)
+        let users = realm.objects(User.self).sorted(byKeyPath: "lastMessageTime", ascending: false)
         if users.isEmpty {
             print("no users found")
             return
@@ -64,14 +64,14 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
     }
     
     //Shows profile extra view
-    func showProfile() {
+    @objc func showProfile() {
         let info = ["viewType" : ShowExtraView.profile]
         NotificationCenter.default.post(name: NSNotification.Name(rawValue: "showExtraView"), object: nil, userInfo: info)
         self.inputView?.isHidden = true
     }
     
     //Shows contacts extra view
-    func showContacts() {
+    @objc func showContacts() {
         
         let vc = self.storyboard?.instantiateViewController(withIdentifier: "AvailableContactsTVC") as! AvailableContactsTVC
         self.navigationController?.pushViewController(vc, animated: true)
@@ -83,7 +83,7 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
     }
     
     //Shows Chat viewcontroller with given user
-    func pushToUserMesssages(notification: NSNotification) {
+    @objc func pushToUserMesssages(notification: NSNotification) {
         if let user = notification.userInfo?["user"] as? User {
             self.selectedUser = user
             self.performSegue(withIdentifier: "chatSegue", sender: self)
@@ -134,7 +134,7 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
         if isFiltering(){
             user = filteredItems[indexPath.row]
         }
-        else {
+        else if items.count != 0 {
             user = items[indexPath.row]
         }
         
@@ -147,16 +147,9 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
             cell.clearCellData()
             
             cell.nameLabel.text = user.name
-            switch user.lastMessage?.type {
-            case MessageType.text.hashValue?:
-                let message = String(data: (user.lastMessage?.content!)!, encoding: .utf8)
-                cell.messageLabel.text = message
-            case MessageType.location.hashValue?:
-                cell.messageLabel.text = "Location"
-            default:
-                cell.messageLabel.text = "Media"
-            }
-            let messageDate = Date.init(timeIntervalSince1970: TimeInterval((user.lastMessage?.id)! / 1000))
+            cell.messageLabel.text = user.lastMessage
+            
+            let messageDate = Date.init(timeIntervalSince1970: TimeInterval(user.lastMessageTime / 1000))
             let dataformatter = DateFormatter.init()
             dataformatter.timeStyle = .short
             let date = dataformatter.string(from: messageDate)
@@ -202,7 +195,9 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
     override func viewDidLoad() {
         super.viewDidLoad()
         self.customization()
-        self.fetchData()
+//        self.fetchData()
+        
+        print(Realm.Configuration.defaultConfiguration.fileURL!)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -211,7 +206,8 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
             self.tableView.deselectRow(at: selectionIndexPath, animated: animated)
         }
         
-        self.tableView.reloadData()
+        self.fetchData()
+//        self.tableView.reloadData()
     }
     
     func searchBarIsEmpty() -> Bool {

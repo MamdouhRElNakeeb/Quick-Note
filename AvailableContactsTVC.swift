@@ -41,7 +41,7 @@ class AvailableContactsTVC: UITableViewController {
                             
                             if item.phoneNumbers.count != 0 {
                                 
-                                user.id = Int(ContactsManager.CNPhoneNumberToString(CNPhoneNumber: item.phoneNumbers[0].value))!
+                                user.id = ContactsManager.CNPhoneNumberToString(CNPhoneNumber: item.phoneNumbers[0].value)
                                 user.name = item.givenName + " " + item.familyName
                                 
                                 for userEmail in item.emailAddresses{
