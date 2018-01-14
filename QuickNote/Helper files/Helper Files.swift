@@ -1,9 +1,17 @@
+//
+//  Helper Files.swift
+//  QuickNote
+//
+//  Created by Mamdouh El Nakeeb on 12/23/17.
+//  Copyright © 2017 Nakeeb.me All rights reserved.
+//
+
 import Foundation
 import UIKit
 
 //Global variables
 struct GlobalVariables {
-    static let blue = UIColor.rbg(r: 129, g: 144, b: 255)
+    static let blue = UIColor.rbg(r: 0, g: 122, b: 255)
     static let purple = UIColor.rbg(r: 161, g: 114, b: 255)
 }
 
@@ -12,6 +20,14 @@ extension UIColor{
     class func rbg(r: CGFloat, g: CGFloat, b: CGFloat) -> UIColor {
         let color = UIColor.init(red: r/255, green: g/255, blue: b/255, alpha: 1)
         return color
+    }
+}
+
+extension UITableView {
+    func scrollToLastCell(animated : Bool) {
+        let lastSectionIndex = self.numberOfSections - 1 // last section
+        let lastRowIndex = self.numberOfRows(inSection: lastSectionIndex) - 1 // last row
+        self.scrollToRow(at: IndexPath(row: lastRowIndex, section: lastSectionIndex), at: .bottom, animated: animated)
     }
 }
 
@@ -45,8 +61,6 @@ enum PhotoSource {
 }
 
 enum ShowExtraView {
-    case contacts
-    case profile
     case preview
     case map
 }
@@ -55,6 +69,13 @@ enum MessageType {
     case photo
     case text
     case location
+    case voicenote
+}
+
+enum VoiceNoteState {
+    case playing
+    case paused
+    case stopped
 }
 
 enum MessageOwner {

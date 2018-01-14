@@ -1,12 +1,22 @@
+//
+//  ChatVC.swift
+//  QuickNote
+//
+//  Created by Mamdouh El Nakeeb on 12/23/17.
+//  Copyright © 2017 Nakeeb.me All rights reserved.
+//
+
 import UIKit
 import Photos
 import CoreLocation
+import AVFoundation
 import RealmSwift
 
 class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate,  UINavigationControllerDelegate, UIImagePickerControllerDelegate, CLLocationManagerDelegate {
     
     //MARK: Properties
     @IBOutlet var inputBar: UIView!
+    @IBOutlet weak var sendBtn: UIButton!
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var inputTextField: UITextField!
     @IBOutlet weak var bottomConstraint: NSLayoutConstraint!
@@ -27,9 +37,30 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
     var currentUser: User?
     var canSendLocation = true
     
-
+    // Voice Note
+    var vnStartTime: Int?
+    var vnEndTime: Int?
+    var recorder: AVAudioRecorder?
+    var audioPlayer: AVAudioPlayer!
+    var progressView: UISlider?
+    var playBtn: UIButton?
+    var vnScheduler: Timer?
+    var playerState = VoiceNoteState.stopped.hashValue
+    var vnFileUrl: URL?
+    var recordingSession: AVAudioSession!
+    var vnSettings: [String: Any] = [
+        AVFormatIDKey: kAudioFormatMPEG4AAC,
+        AVNumberOfChannelsKey: 2,
+        AVEncoderAudioQualityKey: AVAudioQuality.max.rawValue,
+        AVEncoderBitRateKey: 320000,
+        AVSampleRateKey: 44100.0
+    ]
+    
+    // Realm DB
     let realm = try! Realm()
     var firstMsg = false
+    
+    var firstTime = true
     
     //MARK: Methods
     func customization() {
@@ -39,15 +70,192 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
         self.tableView.contentInset.bottom = self.barHeight
         self.tableView.scrollIndicatorInsets.bottom = self.barHeight
         self.navigationItem.title = self.currentUser?.name
-//        self.navigationItem.setHidesBackButton(true, animated: false)
-//        let icon = UIImage.init(named: "back")?.withRenderingMode(.alwaysTemplate)
-//        let backButton = UIBarButtonItem.init(image: icon!, style: .plain, target: self, action: #selector(self.dismissSelf))
-//        backButton.tintColor = self.view.tintColor
-//        self.navigationItem.leftBarButtonItem = backButton
+        
         
         navigationItem.largeTitleDisplayMode = .never
         
         self.locationManager.delegate = self
+        
+        inputTextField.addTarget(self, action: #selector(textFieldDidChange(_:)), for: .editingChanged)
+        sendBtn.imageView?.contentMode = .scaleAspectFit
+        sendBtn.imageView?.tintColor = view.tintColor
+        toggleSendBtn()
+    }
+    
+    // Config Recorder
+    
+    func toggleSendBtn(){
+        
+        if (inputTextField.text?.isEmpty)!{
+            
+            sendBtn.removeTarget(self, action: #selector(sendMessage(_:)), for: .touchUpInside)
+            sendBtn.addTarget(self, action: #selector(startRecord), for: .touchDown)
+            sendBtn.addTarget(self, action: #selector(stopRecord), for: .touchUpInside)
+            sendBtn.addTarget(self, action: #selector(stopRecord), for: .touchUpOutside)
+            sendBtn.setImage(UIImage(named: "mic_icn") , for: .normal)
+            sendBtn.setImage(UIImage(named: "mic_icn2") , for: .highlighted)
+            
+        }
+        else {
+            sendBtn.removeTarget(self, action: #selector(startRecord), for: .touchDown)
+            sendBtn.removeTarget(self, action: #selector(stopRecord), for: .touchUpInside)
+            sendBtn.removeTarget(self, action: #selector(stopRecord), for: .touchUpOutside)
+            sendBtn.addTarget(self, action: #selector(sendMessage(_:)), for: .touchUpInside)
+            sendBtn.setImage(UIImage(named: "send_icn") , for: .normal)
+            sendBtn.setImage(UIImage(named: "send_icn2") , for: .highlighted)
+        }
+        
+    }
+    
+    func configRecorder(){
+        
+        tableView.register(VoiceNoteCell.self, forCellReuseIdentifier: "Voicenote")
+        recordingSession = AVAudioSession.sharedInstance()
+        do {
+            try recordingSession.setCategory(AVAudioSessionCategoryPlayAndRecord)
+            try recordingSession.setActive(true)
+            recordingSession.requestRecordPermission() { [unowned self] allowed in
+                DispatchQueue.main.async {
+                    if allowed {
+                        if self.recorder == nil {
+                            //self.startRecord()
+                        } else {
+                            self.stopRecord()
+                        }
+                    } else {
+                        // failed to record!
+                    }
+                }
+            }
+        } catch {
+            // failed to record!
+        }
+    }
+    
+    @objc func startRecord(){
+        print("start rec")
+        
+        recorder?.stop()
+        
+        vnFileUrl = getDocumentsDirectory().appendingPathComponent("\(Int(Date().timeIntervalSince1970)).m4a")
+        
+        do {
+            recorder = try AVAudioRecorder(url: vnFileUrl!, settings: vnSettings)
+            
+            recorder?.record()
+            vnStartTime = Int(Date().timeIntervalSince1970 * 1000)
+            
+        } catch {
+            print("can't record kda")
+        }
+        
+    }
+    
+    @objc func stopRecord(){
+        
+        vnEndTime = Int(Date().timeIntervalSince1970 * 1000)
+        
+        print("stop rec")
+        recorder?.stop()
+        recorder = nil
+        
+        // Cancel if less than 1 second
+        if vnEndTime! - vnStartTime! < 1000 {
+            return
+        }
+        
+        do{
+            let voiceNote = try Data(contentsOf: vnFileUrl!)
+            
+            composeMessage(type: .voicenote, content: voiceNote)
+        }
+        catch{
+            print("error in rec")
+        }
+    }
+    
+    @objc func toggleVoiceNote(_ sender: VoiceNoteUIButton){
+        
+        playBtn = sender
+        progressView = sender.params["progressBar"] as? UISlider
+        
+        switch playerState {
+        case VoiceNoteState.stopped.hashValue:
+            print("play after stop")
+            do
+            {
+                // 2
+                audioPlayer = try AVAudioPlayer(data: self.items[sender.tag].content!)
+                audioPlayer.play()
+                // 3
+                vnScheduler = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(updateAudioProgressView), userInfo: nil, repeats: true)
+                progressView?.maximumValue = Float(audioPlayer.duration)
+                progressView?.setValue(Float(audioPlayer.currentTime), animated: true)
+                playerState = VoiceNoteState.playing.hashValue
+                playBtn?.setImage(UIImage(named: "pause_icn"), for: .normal)
+            }
+            catch
+            {
+                print("An error occurred while trying to extract audio file")
+            }
+            
+        case VoiceNoteState.paused.hashValue:
+            print("play after pause")
+            if audioPlayer != nil && !audioPlayer.isPlaying{
+                
+                vnScheduler = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(updateAudioProgressView), userInfo: nil, repeats: true)
+                audioPlayer.currentTime = TimeInterval((progressView?.value)!)
+                audioPlayer.play()
+                playerState = VoiceNoteState.playing.hashValue
+                playBtn?.setImage(UIImage(named: "pause_icn"), for: .normal)
+            }
+        default:
+            print("stop after ay 7aga")
+            if audioPlayer != nil{
+                audioPlayer.pause()
+                playerState = VoiceNoteState.paused.hashValue
+                playBtn?.setImage(UIImage(named: "play_icn"), for: .normal)
+                progressView?.setValue(Float(audioPlayer.currentTime), animated: true)
+                vnScheduler?.invalidate()
+                vnScheduler = nil
+            }
+        }
+        
+    }
+    
+    @objc func updateAudioProgressView()
+    {
+        // Update progress
+        progressView?.setValue(Float(audioPlayer.currentTime), animated: true)
+        
+        if !audioPlayer.isPlaying && playerState != VoiceNoteState.paused.hashValue {
+            audioPlayer.stop()
+            playerState = VoiceNoteState.stopped.hashValue
+            playBtn?.setImage(UIImage(named: "play_icn"), for: .normal)
+            
+            vnScheduler?.invalidate()
+            vnScheduler = nil
+        }
+        else{
+            
+            playerState = VoiceNoteState.playing.hashValue
+            playBtn?.setImage(UIImage(named: "pause_icn"), for: .normal)
+        }
+    }
+    
+    @objc func updateVNProgress(_ sender: UISlider){
+        
+        if audioPlayer != nil
+        {
+            // Update progress
+            audioPlayer.currentTime = Double((progressView?.value)!)
+        }
+    }
+    
+    func getDocumentsDirectory() -> URL {
+        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        let documentsDirectory = paths[0]
+        return documentsDirectory
     }
     
     //Downloads messages
@@ -69,6 +277,9 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
         }
         
         self.items = Array(msgs)
+        self.tableView.reloadData()
+        
+        
     }
     
     //Hides current viewcontroller
@@ -97,6 +308,9 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
             case MessageType.location:
                 currentUser?.lastMessage = "Location"
                 break
+            case MessageType.voicenote:
+                currentUser?.lastMessage = "Voice"
+                break
             default:
                 currentUser?.lastMessage = String(data: content, encoding: .utf8)!
                 break
@@ -106,6 +320,8 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
             self.realm.add(currentUser!, update: true)
             self.items.append(message)
             self.tableView.reloadData()
+            self.tableView.scrollToLastCell(animated: true)
+            self.toggleSendBtn()
             if firstMsg {
                 self.navigationController?.viewControllers.remove(at: (self.navigationController?.viewControllers.count)! - 2)
                 firstMsg = false
@@ -189,6 +405,7 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
                 let msgData = self.inputTextField.text?.data(using: .utf8)
                 self.composeMessage(type: .text, content: msgData!)
                 self.inputTextField.text = ""
+                toggleSendBtn()
             }
         }
     }
@@ -205,6 +422,18 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
         }
     }
 
+    func scrollToTVBottom() {
+        let numRows = tableView(tableView, numberOfRowsInSection: 0)
+        var contentInsetTop = self.tableView.bounds.size.height
+        for i in 0..<numRows {
+            contentInsetTop -= tableView(tableView, heightForRowAt: IndexPath(item: i, section: 0))
+            if contentInsetTop <= 0 {
+                contentInsetTop = 0
+            }
+        }
+        tableView.contentInset = UIEdgeInsetsMake(contentInsetTop, 0, 0, 0)
+    }
+    
     //MARK: Delegates
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return self.items.count
@@ -219,37 +448,54 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
         }
     }
     
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        
+        if self.items[indexPath.row].type == MessageType.voicenote.hashValue {
+            return 60
+        }
+        else {
+            return UITableViewAutomaticDimension
+        }
+    }
+    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: "Receiver", for: indexPath) as! ReceiverCell
-        cell.clearCellData()
-        //            cell.profilePic.image = self.currentUser?.profilePic
-        switch self.items[indexPath.row].type {
-        case MessageType.text.hashValue:
-            cell.message.text = String(data: self.items[indexPath.row].content!, encoding: .utf8)
-        case MessageType.photo.hashValue:
-            if let image = UIImage(data: self.items[indexPath.row].content!) {
-                cell.messageBackground.image = image
-                cell.message.isHidden = true
-            }
-//            else {
-//                cell.messageBackground.image = UIImage.init(named: "loading")
-//                cell.messageBackground.image = UIImage(data: self.items[indexPath.row].content!)
-//                self.items[indexPath.row].downloadImage(indexpathRow: indexPath.row, completion: { (state, index) in
-//                    if state == true {
-//                        DispatchQueue.main.async {
-//                            self.tableView.reloadData()
-//                        }
-//                    }
-//                })
-//            }
-        case MessageType.location.hashValue:
-            cell.messageBackground.image = UIImage.init(named: "location")
-            cell.message.isHidden = true
+        let note = self.items[indexPath.row]
+        
+        switch note.type {
+        case MessageType.voicenote.hashValue:
+            let vnCell = tableView.dequeueReusableCell(withIdentifier: "Voicenote", for: indexPath) as! VoiceNoteCell
+            vnCell.vnPlayBtn.tag = indexPath.row
+            vnCell.vnPlayBtn.addTarget(self, action: #selector(self.toggleVoiceNote(_:)), for: .touchUpInside)
+            vnCell.vnPlayBtn.params = [
+                "index": indexPath.row,
+                "progressBar": vnCell.vnProgress
+            ]
+            vnCell.vnProgress.addTarget(self, action: #selector(self.updateVNProgress(_:)), for: .editingChanged)
+            return vnCell
         default:
-            break
+            let cell = tableView.dequeueReusableCell(withIdentifier: "Receiver", for: indexPath) as! ReceiverCell
+            cell.clearCellData()
+            
+            switch note.type {
+            case MessageType.text.hashValue:
+                cell.message.text = String(data: note.content!, encoding: .utf8)
+            case MessageType.photo.hashValue:
+                if let image = UIImage(data: note.content!) {
+                    cell.messageBackground.image = image
+                    cell.message.isHidden = true
+                }
+                
+            case MessageType.location.hashValue:
+                cell.messageBackground.image = UIImage.init(named: "location")
+                cell.messageBackground.backgroundColor = UIColor.clear
+                cell.message.isHidden = true
+            default:
+                break
+            }
+            return cell
         }
-        return cell
+        
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -273,9 +519,21 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
         }
     }
     
+    func tableView(_ tableView: UITableView, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        if  firstTime && tableView.numberOfRows(inSection: 0) == self.items.count{
+            firstTime = false
+            tableView.scrollToLastCell(animated: true)
+        }
+    }
+    
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.resignFirstResponder()
         return true
+    }
+    
+    @objc func textFieldDidChange(_ textField: UITextField){
+        
+        toggleSendBtn()
     }
     
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
@@ -313,15 +571,30 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         NotificationCenter.default.removeObserver(self)
+        if audioPlayer != nil{
+            audioPlayer.stop()
+        }
+        if recorder != nil{
+            recorder?.stop()
+        }
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         self.customization()
+        self.configRecorder()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         self.fetchData()
         print(Realm.Configuration.defaultConfiguration.fileURL!)
     }
 }
+
+
+
 
 
 

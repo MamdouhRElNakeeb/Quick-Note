@@ -2,8 +2,8 @@
 //  ContactsManager.swift
 //  QuickNote
 //
-//  Created by Mamdouh El Nakeeb on 12/22/17.
-//  Copyright © 2017 Nakeeb. All rights reserved.
+//  Created by Mamdouh El Nakeeb on 12/23/17.
+//  Copyright © 2017 Nakeeb.me All rights reserved.
 //
 
 import UIKit

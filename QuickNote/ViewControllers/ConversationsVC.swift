@@ -1,3 +1,11 @@
+//
+//  ConvrsationsVC.swift
+//  QuickNote
+//
+//  Created by Mamdouh El Nakeeb on 12/23/17.
+//  Copyright © 2017 Nakeeb.me All rights reserved.
+//
+
 import UIKit
 import AudioToolbox
 import RealmSwift
@@ -7,11 +15,7 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
     //MARK: Properties
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var alertBottomConstraint: NSLayoutConstraint!
-    lazy var leftButton: UIBarButtonItem = {
-        let image = UIImage.init(named: "default profile")?.withRenderingMode(.alwaysOriginal)
-        let button  = UIBarButtonItem.init(image: image, style: .plain, target: self, action: #selector(ConversationsVC.showProfile))
-        return button
-    }()
+    
     var items = [User]()
     var filteredItems = [User]()
     var selectedUser: User?
@@ -63,23 +67,11 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
         
     }
     
-    //Shows profile extra view
-    @objc func showProfile() {
-        let info = ["viewType" : ShowExtraView.profile]
-        NotificationCenter.default.post(name: NSNotification.Name(rawValue: "showExtraView"), object: nil, userInfo: info)
-        self.inputView?.isHidden = true
-    }
-    
     //Shows contacts extra view
     @objc func showContacts() {
         
         let vc = self.storyboard?.instantiateViewController(withIdentifier: "AvailableContactsTVC") as! AvailableContactsTVC
         self.navigationController?.pushViewController(vc, animated: true)
-    }
-    
-    //Show EmailVerification on the bottom
-    func showEmailAlert() {
-        
     }
     
     //Shows Chat viewcontroller with given user
@@ -148,7 +140,9 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
             
             cell.nameLabel.text = user.name
             cell.messageLabel.text = user.lastMessage
-            
+            if let userImg = user.img{
+                cell.profilePic.image = UIImage(data: userImg)
+            }
             let messageDate = Date.init(timeIntervalSince1970: TimeInterval(user.lastMessageTime / 1000))
             let dataformatter = DateFormatter.init()
             dataformatter.timeStyle = .short
@@ -170,6 +164,7 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
             user = items[indexPath.row]
         }
         vc.currentUser = user
+        searchController.isActive = false
         self.navigationController?.pushViewController(vc, animated: true)
     }
     
@@ -195,7 +190,7 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
     override func viewDidLoad() {
         super.viewDidLoad()
         self.customization()
-//        self.fetchData()
+        self.fetchData()
         
         print(Realm.Configuration.defaultConfiguration.fileURL!)
     }
@@ -206,8 +201,6 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
             self.tableView.deselectRow(at: selectionIndexPath, animated: animated)
         }
         
-        self.fetchData()
-//        self.tableView.reloadData()
     }
     
     func searchBarIsEmpty() -> Bool {
@@ -236,11 +229,7 @@ extension ConversationsVC: UISearchResultsUpdating, UISearchBarDelegate {
         //
         filterContentForSearchText(searchController.searchBar.text!)
     }
-//
-//    // MARK: - UISearchBar Delegate
-//    func searchBar(_ searchBar: UISearchBar, selectedScopeButtonIndexDidChange selectedScope: Int) {
-//        filterContentForSearchText(searchBar.text!, scope: searchBar.scopeButtonTitles![selectedScope])
-//    }
+    
 }
 
 

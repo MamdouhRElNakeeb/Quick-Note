@@ -1,3 +1,11 @@
+//
+//  LandingVC.swift
+//  QuickNote
+//
+//  Created by Mamdouh El Nakeeb on 12/23/17.
+//  Copyright © 2017 Nakeeb.me All rights reserved.
+//
+
 import UIKit
 
 class LandingVC: UIViewController {
@@ -9,32 +17,9 @@ class LandingVC: UIViewController {
         }
     }
 
-    //MARK: Push to relevant ViewController
-    func pushTo(viewController: ViewControllerType)  {
-        switch viewController {
-        case .conversations:
-            let vc = self.storyboard?.instantiateViewController(withIdentifier: "Navigation") as! NavVC
-            self.present(vc, animated: false, completion: nil)
-        case .welcome:
-            let vc = self.storyboard?.instantiateViewController(withIdentifier: "Welcome") as! WelcomeVC
-            self.present(vc, animated: false, completion: nil)
-        }
-    }
-    
-    //MARK: Check if user is signed in or not
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        if let userInformation = UserDefaults.standard.dictionary(forKey: "userInformation") {
-            let email = userInformation["email"] as! String
-            let password = userInformation["password"] as! String
-
-            
-        } else {
-            self.pushTo(viewController: .welcome)
-        }
-    }
-
     override func viewDidLoad() {
         super.viewDidLoad()
+        let vc = self.storyboard?.instantiateViewController(withIdentifier: "Navigation") as! NavVC
+        self.present(vc, animated: false, completion: nil)
     }
 }

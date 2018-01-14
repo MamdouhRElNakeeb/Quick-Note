@@ -3,14 +3,18 @@
 //  QuickNote
 //
 //  Created by Mamdouh El Nakeeb on 12/23/17.
-//  Copyright © 2017 Nakeeb. All rights reserved.
+//  Copyright © 2017 Nakeeb.me All rights reserved.
 //
 
 import UIKit
 
 class AvailableContactsTVC: UITableViewController {
 
-    var contacts = [User]()
+    
+    var searchController = UISearchController()
+    
+    var items = [User]()
+    var filteredItems = [User]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -26,9 +30,24 @@ class AvailableContactsTVC: UITableViewController {
         navigationItem.searchController = searchBar
         navigationItem.hidesSearchBarWhenScrolling = false
         
+        setupLargeNavBar()
+        
         fetchUsers()
     }
 
+    func setupLargeNavBar(){
+        
+        // Large Navigation Bar with Search Bar
+        self.navigationController?.navigationBar.prefersLargeTitles = true
+        self.navigationController?.navigationItem.largeTitleDisplayMode = .always
+        searchController = UISearchController(searchResultsController: nil)
+        searchController.searchResultsUpdater = self
+        searchController.obscuresBackgroundDuringPresentation = false
+        navigationItem.searchController = searchController
+        navigationItem.hidesSearchBarWhenScrolling = false
+        
+    }
+    
     func fetchUsers()  {
         ContactsManager.requestAccess { (bool) in
             if bool {
@@ -52,8 +71,11 @@ class AvailableContactsTVC: UITableViewController {
                                     user.numbers.append(ContactsManager.CNPhoneNumberToString(CNPhoneNumber: userNumber.value))
                                 }
                                 
+                                if let userImg = item.imageData{
+                                    user.img = userImg
+                                }
                                 
-                                self.contacts.append(user)
+                                self.items.append(user)
                                 
                             }
                             
@@ -78,14 +100,33 @@ class AvailableContactsTVC: UITableViewController {
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
-        return contacts.count
+        
+        if isFiltering(){
+            return self.filteredItems.count
+        }
+        else {
+            if self.items.count == 0 {
+                return 1
+            } else {
+                return self.items.count
+            }
+        }
     }
 
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell()
         
-        cell.textLabel?.text = contacts[indexPath.row].name
+        
+        var user = User()
+        if isFiltering(){
+            user = filteredItems[indexPath.row]
+        }
+        else if items.count != 0 {
+            user = items[indexPath.row]
+        }
+        
+        cell.textLabel?.text = user.name
         return cell
     }
     
@@ -93,21 +134,48 @@ class AvailableContactsTVC: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
         tableView.deselectRow(at: indexPath, animated: true)
-        
         let vc = self.storyboard?.instantiateViewController(withIdentifier: "Chat") as! ChatVC
-        vc.currentUser = contacts[indexPath.row]
-        self.navigationController?.pushViewController(vc, animated: true)
         
+        var user = User()
+        if isFiltering(){
+            user = filteredItems[indexPath.row]
+        }
+        else {
+            user = items[indexPath.row]
+        }
+        vc.currentUser = user
+        
+        searchController.isActive = false
+        self.navigationController?.pushViewController(vc, animated: true)
     }
 
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
+    
+    func searchBarIsEmpty() -> Bool {
+        // Returns true if the text is empty or nil
+        return searchController.searchBar.text?.isEmpty ?? true
     }
-    */
+    
+    func filterContentForSearchText(_ searchText: String, scope: String = "All") {
+        filteredItems = items.filter({( user : User) -> Bool in
+            print(user.name)
+            return user.name.lowercased().contains(searchText.lowercased())
+        })
+        
+        self.tableView.reloadData()
+    }
+    
+    func isFiltering() -> Bool {
+        return searchController.isActive && !searchBarIsEmpty()
+    }
 
 }
+
+extension AvailableContactsTVC: UISearchResultsUpdating, UISearchBarDelegate {
+    // MARK: - UISearchResultsUpdating Delegate
+    func updateSearchResults(for searchController: UISearchController) {
+        //
+        filterContentForSearchText(searchController.searchBar.text!)
+    }
+}
+
+

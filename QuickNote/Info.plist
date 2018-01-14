@@ -34,6 +34,10 @@
 	<string>Location will be used for to share with friends</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Photos will be used for setting profile picture or sending to friends</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Mic will be used to save voice notes</string>
+	<key>LSApplicationCategoryType</key>
+	<string></string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
