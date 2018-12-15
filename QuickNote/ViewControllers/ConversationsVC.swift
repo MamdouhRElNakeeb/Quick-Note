@@ -157,12 +157,16 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
         
         let vc = self.storyboard?.instantiateViewController(withIdentifier: "Chat") as! ChatVC
         var user = User()
-        if isFiltering(){
-            user = filteredItems[indexPath.row]
+        
+        if !items.isEmpty {
+            if isFiltering(){
+                user = filteredItems[indexPath.row]
+            }
+            else {
+                user = items[indexPath.row]
+            }
         }
-        else {
-            user = items[indexPath.row]
-        }
+        
         vc.currentUser = user
         searchController.isActive = false
         self.navigationController?.pushViewController(vc, animated: true)

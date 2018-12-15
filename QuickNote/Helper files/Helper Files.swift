@@ -65,11 +65,11 @@ enum ShowExtraView {
     case map
 }
 
-enum MessageType {
-    case photo
-    case text
-    case location
-    case voicenote
+enum MessageType: Int {
+    case photo = 0
+    case text = 1
+    case location = 2
+    case voicenote = 3
 }
 
 enum VoiceNoteState {

@@ -17,7 +17,7 @@ class Message: Object {
     //MARK: Properties
     @objc dynamic var id = ""
     @objc dynamic var userId = ""
-    @objc dynamic var type = 0
+    @objc dynamic var type = MessageType.text.rawValue
     @objc dynamic var content: Data? = nil
     @objc dynamic var isDeleted = false
     

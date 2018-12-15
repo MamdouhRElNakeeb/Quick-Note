@@ -6,7 +6,7 @@ target 'QuickNote' do
   use_frameworks!
 
   # Pods for QuickChat
-  pod 'RealmSwift'
+  pod 'RealmSwift', '~> 3.13.0'
   pod 'IceCream'
   
 end

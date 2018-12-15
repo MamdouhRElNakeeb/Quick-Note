@@ -15,13 +15,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     var window: UIWindow?
     
-    var syncUsers: SyncEngine<User>?
-    var syncMsgs: SyncEngine<Message>?
+    var syncEngine: SyncEngine?
     
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
 
-        syncUsers = SyncEngine<User>()
-        syncMsgs = SyncEngine<Message>()
+        syncEngine = SyncEngine(objects: [
+            SyncObject<User>(),
+            SyncObject<Message>()
+            ])
         application.registerForRemoteNotifications()
         
         return true

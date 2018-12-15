@@ -39,7 +39,8 @@ class NavVC: UINavigationController, UIScrollViewDelegate {
         self.darkView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
         self.darkView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor).isActive = true
         self.darkView.isHidden = true
-    //ContainerView customization
+    
+        //ContainerView customization
         let extraViewsContainer = UIView.init()
         extraViewsContainer.translatesAutoresizingMaskIntoConstraints = false
         self.view.addSubview(extraViewsContainer)
@@ -47,11 +48,13 @@ class NavVC: UINavigationController, UIScrollViewDelegate {
         self.topAnchorContraint.isActive = true
         extraViewsContainer.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
         extraViewsContainer.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
+       
         extraViewsContainer.heightAnchor.constraint(equalTo: self.view.heightAnchor, multiplier: 1).isActive = true
         extraViewsContainer.backgroundColor = UIColor.clear
     
         self.view.layoutIfNeeded()
-    //PreviewView Customization
+        
+        //PreviewView Customization
         extraViewsContainer.addSubview(self.previewView)
         self.previewView.isHidden = true
         self.previewView.translatesAutoresizingMaskIntoConstraints = false
@@ -61,7 +64,8 @@ class NavVC: UINavigationController, UIScrollViewDelegate {
         self.previewView.bottomAnchor.constraint(equalTo: extraViewsContainer.bottomAnchor).isActive = true
         self.scrollView.minimumZoomScale = 1.0
         self.scrollView.maximumZoomScale = 3.0
-    //MapPreView Customization
+    
+        //MapPreView Customization
         extraViewsContainer.addSubview(self.mapPreviewView)
         self.mapPreviewView.isHidden = true
         self.mapPreviewView.translatesAutoresizingMaskIntoConstraints = false
@@ -69,6 +73,7 @@ class NavVC: UINavigationController, UIScrollViewDelegate {
         self.mapPreviewView.topAnchor.constraint(equalTo: extraViewsContainer.topAnchor).isActive = true
         self.mapPreviewView.trailingAnchor.constraint(equalTo: extraViewsContainer.trailingAnchor).isActive = true
         self.mapPreviewView.bottomAnchor.constraint(equalTo: extraViewsContainer.bottomAnchor).isActive = true
+        
         //NotificationCenter for showing extra views
         NotificationCenter.default.addObserver(self, selector: #selector(self.showExtraViews(notification:)), name: NSNotification.Name(rawValue: "showExtraView"), object: nil)
 

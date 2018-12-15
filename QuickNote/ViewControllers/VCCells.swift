@@ -25,7 +25,7 @@ class SenderCell: UITableViewCell {
     override func awakeFromNib() {
         super.awakeFromNib()
         self.selectionStyle = .none
-        self.message.textContainerInset = UIEdgeInsetsMake(5, 5, 5, 5)
+        self.message.textContainerInset = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
         self.messageBackground.layer.cornerRadius = 15
         self.messageBackground.clipsToBounds = true
     }
@@ -45,7 +45,7 @@ class ReceiverCell: UITableViewCell {
     override func awakeFromNib() {
         super.awakeFromNib()
         self.selectionStyle = .none
-        self.message.textContainerInset = UIEdgeInsetsMake(5, 5, 5, 5)
+        self.message.textContainerInset = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
         self.messageBackground.layer.cornerRadius = 15
         self.messageBackground.clipsToBounds = true
         
@@ -59,7 +59,7 @@ class VoiceNoteCell: UITableViewCell {
     var vnProgress = UISlider()
     var type = 0
     
-    override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         self.selectionStyle = .none
         

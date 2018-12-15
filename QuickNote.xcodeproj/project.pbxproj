@@ -25,6 +25,7 @@
 		33C16A9A1FED71CD00B34462 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33C16A971FED71CD00B34462 /* User.swift */; };
 		33C16A9F1FED87B800B34462 /* ContactsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33C16A9E1FED87B800B34462 /* ContactsManager.swift */; };
 		33F201E71FFE3DFE00B7C384 /* VoiceNote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F201E61FFE3DFE00B7C384 /* VoiceNote.swift */; };
+		6532CE5A21C5A0F600D7C757 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6532CE5921C5A0F600D7C757 /* Launch Screen.storyboard */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -50,6 +51,7 @@
 		33F201E61FFE3DFE00B7C384 /* VoiceNote.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceNote.swift; sourceTree = "<group>"; };
 		475BE34034CB8F2A41F46FE2 /* Pods-QuickNote.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-QuickNote.debug.xcconfig"; path = "Pods/Target Support Files/Pods-QuickNote/Pods-QuickNote.debug.xcconfig"; sourceTree = "<group>"; };
 		614F8B4888358059B3DC166B /* Pods-QuickChat.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-QuickChat.debug.xcconfig"; path = "Pods/Target Support Files/Pods-QuickChat/Pods-QuickChat.debug.xcconfig"; sourceTree = "<group>"; };
+		6532CE5921C5A0F600D7C757 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 		92DC789A6C139B1D7E438A62 /* Pods-QuickNote.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-QuickNote.release.xcconfig"; path = "Pods/Target Support Files/Pods-QuickNote/Pods-QuickNote.release.xcconfig"; sourceTree = "<group>"; };
 		B8041C4B4A9DA4F0F53D2BDE /* Pods_QuickChat.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_QuickChat.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B8FBFCFF82B6EB57B02FA375 /* Pods-QuickChat.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-QuickChat.release.xcconfig"; path = "Pods/Target Support Files/Pods-QuickChat/Pods-QuickChat.release.xcconfig"; sourceTree = "<group>"; };
@@ -128,6 +130,7 @@
 				33762D8F1FEE095200F051E6 /* QuickNote.entitlements */,
 				22A92BB01D59EBD6005D76F7 /* AppDelegate.swift */,
 				224AFA9C1D867DE7004E7CCD /* Main.storyboard */,
+				6532CE5921C5A0F600D7C757 /* Launch Screen.storyboard */,
 				224AFA9E1D868371004E7CCD /* ViewControllers */,
 				224834AF1DB539690019153C /* Model */,
 				224AFAAA1D86900B004E7CCD /* Helper Files */,
@@ -172,7 +175,6 @@
 				22A92BAA1D59EBD5005D76F7 /* Frameworks */,
 				22A92BAB1D59EBD5005D76F7 /* Resources */,
 				62D3364F6C35C0B3DF08236F /* [CP] Embed Pods Frameworks */,
-				59C78960725AB64FF0FC6829 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -243,6 +245,7 @@
 			files = (
 				22A92BB81D59EBD6005D76F7 /* Assets.xcassets in Resources */,
 				22EA578F1E1D28DD0008FFB2 /* newMessage.wav in Resources */,
+				6532CE5A21C5A0F600D7C757 /* Launch Screen.storyboard in Resources */,
 				224AFA9D1D867DE7004E7CCD /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -266,21 +269,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		59C78960725AB64FF0FC6829 /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-QuickNote/Pods-QuickNote-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		62D3364F6C35C0B3DF08236F /* [CP] Embed Pods Frameworks */ = {
@@ -426,7 +414,6 @@
 			baseConfigurationReference = 475BE34034CB8F2A41F46FE2 /* Pods-QuickNote.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_ENTITLEMENTS = QuickNote/QuickNote.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
@@ -438,7 +425,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "a02accd8-0732-4d28-ae0c-ce4414ac445f";
 				PROVISIONING_PROFILE_SPECIFIER = "Quick Note";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Debug;
 		};
@@ -447,7 +434,6 @@
 			baseConfigurationReference = 92DC789A6C139B1D7E438A62 /* Pods-QuickNote.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_ENTITLEMENTS = QuickNote/QuickNote.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
@@ -459,7 +445,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "332b22d9-74d4-44bb-802b-2b56330256b6";
 				PROVISIONING_PROFILE_SPECIFIER = "Quick Note";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Release;
 		};

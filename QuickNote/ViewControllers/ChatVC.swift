@@ -66,7 +66,7 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
     func customization() {
         self.imagePicker.delegate = self
         self.tableView.estimatedRowHeight = self.barHeight
-        self.tableView.rowHeight = UITableViewAutomaticDimension
+        self.tableView.rowHeight = UITableView.automaticDimension
         self.tableView.contentInset.bottom = self.barHeight
         self.tableView.scrollIndicatorInsets.bottom = self.barHeight
         self.navigationItem.title = self.currentUser?.name
@@ -112,7 +112,7 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
         tableView.register(VoiceNoteCell.self, forCellReuseIdentifier: "Voicenote")
         recordingSession = AVAudioSession.sharedInstance()
         do {
-            try recordingSession.setCategory(AVAudioSessionCategoryPlayAndRecord)
+            try recordingSession.setCategory(.playAndRecord, mode: .default)
             try recordingSession.setActive(true)
             recordingSession.requestRecordPermission() { [unowned self] allowed in
                 DispatchQueue.main.async {
@@ -293,7 +293,7 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
         
         let message = Message()
         message.content = content
-        message.type = type.hashValue
+        message.type = type.rawValue
         message.userId = (currentUser?.id)!
         message.id = String(Int((Date().timeIntervalSince1970 * 1000).rounded()))
         try! self.realm.write {
@@ -412,7 +412,7 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
     
     //MARK: NotificationCenter handlers
     @objc func showKeyboard(notification: Notification) {
-        if let frame = notification.userInfo![UIKeyboardFrameEndUserInfoKey] as? NSValue {
+        if let frame = notification.userInfo![UIResponder.keyboardFrameEndUserInfoKey] as? NSValue {
             let height = frame.cgRectValue.height
             self.tableView.contentInset.bottom = height
             self.tableView.scrollIndicatorInsets.bottom = height
@@ -431,7 +431,7 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
                 contentInsetTop = 0
             }
         }
-        tableView.contentInset = UIEdgeInsetsMake(contentInsetTop, 0, 0, 0)
+        tableView.contentInset = UIEdgeInsets(top: contentInsetTop, left: 0, bottom: 0, right: 0)
     }
     
     //MARK: Delegates
@@ -454,7 +454,7 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
             return 60
         }
         else {
-            return UITableViewAutomaticDimension
+            return UITableView.automaticDimension
         }
     }
     
@@ -463,7 +463,7 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
         let note = self.items[indexPath.row]
         
         switch note.type {
-        case MessageType.voicenote.hashValue:
+        case MessageType.voicenote.rawValue:
             let vnCell = tableView.dequeueReusableCell(withIdentifier: "Voicenote", for: indexPath) as! VoiceNoteCell
             vnCell.vnPlayBtn.tag = indexPath.row
             vnCell.vnPlayBtn.addTarget(self, action: #selector(self.toggleVoiceNote(_:)), for: .touchUpInside)
@@ -478,18 +478,22 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
             cell.clearCellData()
             
             switch note.type {
-            case MessageType.text.hashValue:
+            case MessageType.text.rawValue:
                 cell.message.text = String(data: note.content!, encoding: .utf8)
-            case MessageType.photo.hashValue:
+                break
+                
+            case MessageType.photo.rawValue:
                 if let image = UIImage(data: note.content!) {
                     cell.messageBackground.image = image
                     cell.message.isHidden = true
                 }
+                break
                 
-            case MessageType.location.hashValue:
+            case MessageType.location.rawValue:
                 cell.messageBackground.image = UIImage.init(named: "location")
                 cell.messageBackground.backgroundColor = UIColor.clear
                 cell.message.isHidden = true
+                break
             default:
                 break
             }
@@ -501,13 +505,13 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         self.inputTextField.resignFirstResponder()
         switch self.items[indexPath.row].type {
-        case MessageType.photo.hashValue:
+        case MessageType.photo.rawValue:
             if let photo = UIImage(data: self.items[indexPath.row].content!) {
                 let info = ["viewType" : ShowExtraView.preview, "pic": photo] as [String : Any]
                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: "showExtraView"), object: nil, userInfo: info)
                 self.inputAccessoryView?.isHidden = true
             }
-        case MessageType.location.hashValue:
+        case MessageType.location.rawValue:
             let coordinates = String(data: self.items[indexPath.row].content!, encoding: .utf8)?.components(separatedBy: ":")
             let location = CLLocationCoordinate2D.init(latitude: CLLocationDegrees(coordinates![0])!, longitude: CLLocationDegrees(coordinates![1])!)
             let info = ["viewType" : ShowExtraView.map, "location": location] as [String : Any]
@@ -536,16 +540,19 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
         toggleSendBtn()
     }
     
-    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
-        if let pickedImage = info[UIImagePickerControllerEditedImage] as? UIImage {
-            let msgData = UIImagePNGRepresentation(pickedImage)
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        
+        var selectedImage: UIImage?
+        if let editedImage = info[.editedImage] as? UIImage {
+            let msgData = editedImage.pngData()
             self.composeMessage(type: .photo, content: msgData!)
-        } else {
-            let pickedImage = info[UIImagePickerControllerOriginalImage] as! UIImage
-            let msgData = UIImagePNGRepresentation(pickedImage)
+        } else if let originalImage = info[.originalImage] as? UIImage {
+            selectedImage = originalImage
+            let msgData = selectedImage?.pngData()
             self.composeMessage(type: .photo, content: msgData!)
         }
         picker.dismiss(animated: true, completion: nil)
+        
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
@@ -565,7 +572,7 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
         super.viewDidAppear(animated)
         self.inputBar.backgroundColor = UIColor.clear
         self.view.layoutIfNeeded()
-        NotificationCenter.default.addObserver(self, selector: #selector(ChatVC.showKeyboard(notification:)), name: Notification.Name.UIKeyboardWillShow, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(ChatVC.showKeyboard(notification:)), name: UIApplication.keyboardWillShowNotification, object: nil)
     }
     
     override func viewWillDisappear(_ animated: Bool) {
